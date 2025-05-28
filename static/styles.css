@@ -12,3 +12,24 @@
     background-color: #d1e7dd;
     border-left: 5px solid #198754;
 }
+
+.btn-outline-danger {
+    border: none;
+    background-color: transparent;
+    color: #606060;
+}
+
+.btn-outline-danger:hover {
+    background-color: #bcbcbc;
+    color: #606060;
+}
+
+.task-completed {
+    background-color: #f0f0f0;
+    color: #6c757d;
+}
+
+.task-completed h5,
+.task-completed p {
+    text-decoration: line-through;
+}

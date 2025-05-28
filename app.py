@@ -1,5 +1,5 @@
-import os
 import sqlite3
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, session
 from flask_session import Session
 from functools import wraps
@@ -11,7 +11,7 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-app.secret_key = os.urandom(24)
+app.secret_key = "dev-secret-key"
 
 def apology(message, code=400):
     return render_template("apology.html", top=code, bottom=message), code
@@ -38,17 +38,21 @@ def index():
     conn = sqlite3.connect("todo.db")
     db = conn.cursor()
 
-    db.execute("SELECT id, content, timestamp, description, priority, due_date FROM todos WHERE user_id = ? ORDER BY timestamp DESC", (user_id,))
-    tasks = db.fetchall()
+    db.execute("SELECT id, content, timestamp, description, priority, due_date FROM todos WHERE user_id = ? AND completed = 0 ORDER BY timestamp DESC", (user_id,))
+    incomplete_tasks = db.fetchall()
+
+    db.execute("SELECT id, content, timestamp, description, priority, due_date FROM todos WHERE user_id = ? AND completed = 1 ORDER BY timestamp DESC", (user_id,))
+    completed_tasks = db.fetchall()
 
     db.execute("SELECT username FROM users WHERE id = ?", (user_id,))
     username = db.fetchone()[0]
 
     conn.close()
 
-    tasks = [{"id": t[0], "content": t[1], "timestamp": t[2], "description": t[3], "priority": t[4], "due_date": t[5]} for t in tasks]
+    incomplete_tasks = [{"id": t[0], "content": t[1], "timestamp": t[2], "description": t[3], "priority": t[4], "due_date": t[5]} for t in incomplete_tasks]
+    completed_tasks = [{"id": t[0], "content": t[1], "timestamp": t[2], "description": t[3], "priority": t[4], "due_date": t[5]} for t in completed_tasks]
 
-    return render_template("index.html", tasks=tasks, username=username)
+    return render_template("index.html", username=username, incomplete_tasks=incomplete_tasks, completed_tasks=completed_tasks)
 
 @app.route("/add_task", methods=["POST"])
 @login_required
@@ -63,11 +67,31 @@ def add_task():
     if not priority:
         return apology("must select task priority", 400)
     
+    if due_date:
+        try:
+            datetime.strptime(due_date, "%Y-%m-%d")
+        except ValueError:
+            return apology("invalid date format", 400)
+    
     user_id = session["user_id"]
     conn = sqlite3.connect("todo.db")
     db = conn.cursor()
 
     db.execute("INSERT INTO todos (user_id, content, description, priority, due_date) VALUES (?, ?, ?, ?, ?)", (user_id, content, description, priority, due_date))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+@app.route("/delete_task/<int:task_id>", methods=["POST"])
+@login_required
+def delete_task(task_id):
+    user_id = session["user_id"]
+    conn = sqlite3.connect("todo.db")
+    db = conn.cursor()
+
+    db.execute("DELETE FROM todos WHERE id = ? AND user_id = ?", (task_id, user_id))
 
     conn.commit()
     conn.close()
