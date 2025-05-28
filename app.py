@@ -34,7 +34,45 @@ def after_request(response):
 @app.route("/")
 @login_required
 def index():
-	return render_template("index.html")
+    user_id = session["user_id"]
+    conn = sqlite3.connect("todo.db")
+    db = conn.cursor()
+
+    db.execute("SELECT id, content, timestamp, description, priority, due_date FROM todos WHERE user_id = ? ORDER BY timestamp DESC", (user_id,))
+    tasks = db.fetchall()
+
+    db.execute("SELECT username FROM users WHERE id = ?", (user_id,))
+    username = db.fetchone()[0]
+
+    conn.close()
+
+    tasks = [{"id": t[0], "content": t[1], "timestamp": t[2], "description": t[3], "priority": t[4], "due_date": t[5]} for t in tasks]
+
+    return render_template("index.html", tasks=tasks, username=username)
+
+@app.route("/add_task", methods=["POST"])
+@login_required
+def add_task():
+    content = request.form.get("content")
+    description = request.form.get("description")
+    priority = request.form.get("priority")
+    due_date = request.form.get("due_date")
+    
+    if not content:
+        return apology("must provide task content", 400)
+    if not priority:
+        return apology("must select task priority", 400)
+    
+    user_id = session["user_id"]
+    conn = sqlite3.connect("todo.db")
+    db = conn.cursor()
+
+    db.execute("INSERT INTO todos (user_id, content, description, priority, due_date) VALUES (?, ?, ?, ?, ?)", (user_id, content, description, priority, due_date))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():

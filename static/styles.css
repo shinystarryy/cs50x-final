@@ -1,0 +1,14 @@
+.task-high {
+    background-color: #f8d7da;
+    border-left: 5px solid #dc3545;
+}
+
+.task-medium {
+    background-color: #fff3cd;
+    border-left: 5px solid #ffc107;
+}
+
+.task-low {
+    background-color: #d1e7dd;
+    border-left: 5px solid #198754;
+}
