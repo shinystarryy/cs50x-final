@@ -41,7 +41,7 @@ def index():
     db.execute("SELECT id, content, timestamp, description, priority, due_date FROM todos WHERE user_id = ? AND completed = 0 ORDER BY timestamp DESC", (user_id,))
     incomplete_tasks = db.fetchall()
 
-    db.execute("SELECT id, content, timestamp, description, priority, due_date FROM todos WHERE user_id = ? AND completed = 1 ORDER BY timestamp DESC", (user_id,))
+    db.execute("SELECT id, content, timestamp, description, priority, due_date FROM todos WHERE user_id = ? AND completed = 1 ORDER BY completed_at DESC", (user_id,))
     completed_tasks = db.fetchall()
 
     db.execute("SELECT username FROM users WHERE id = ?", (user_id,))
@@ -84,14 +84,62 @@ def add_task():
 
     return redirect("/")
 
-@app.route("/delete_task/<int:task_id>", methods=["POST"])
+@app.route("/delete_task", methods=["POST"])
 @login_required
-def delete_task(task_id):
+def delete_task():
+    task_id = request.form.get("task_id")
     user_id = session["user_id"]
+
+    if not task_id:
+        return apology("invalid task", 400)
+    task_id = int(task_id)
+    
     conn = sqlite3.connect("todo.db")
     db = conn.cursor()
 
     db.execute("DELETE FROM todos WHERE id = ? AND user_id = ?", (task_id, user_id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+@app.route("/complete_task", methods=["POST"])
+@login_required
+def complete_task():
+    task_id = request.form.get("task_id")
+    user_id = session["user_id"]
+
+    if not task_id:
+        return apology("invalid task", 400)
+    task_id = int(task_id)
+
+    conn = sqlite3.connect("todo.db")
+    db = conn.cursor()
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    db.execute("UPDATE todos SET completed = 1, completed_at = ? WHERE id = ? AND user_id = ?", (now, task_id, user_id))
+    
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+@app.route("/incomplete_task", methods=["POST"])
+@login_required
+def incomplete_task():
+    task_id = request.form.get("task_id")
+    user_id = session["user_id"]
+
+    if not task_id:
+        return apology("invalid task", 400)
+    task_id = int(task_id)
+
+    conn = sqlite3.connect("todo.db")
+    db = conn.cursor()
+
+    db.execute("UPDATE todos SET completed = 0, completed_at = NULL WHERE id = ? AND user_id = ?", (task_id, user_id))
 
     conn.commit()
     conn.close()

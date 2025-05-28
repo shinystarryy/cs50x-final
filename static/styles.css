@@ -33,3 +33,7 @@
 .task-completed p {
     text-decoration: line-through;
 }
+
+.form-check-input {
+    margin-top: 0.3rem;
+}

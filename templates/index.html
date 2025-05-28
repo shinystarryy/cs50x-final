@@ -23,9 +23,27 @@
                         {% elif task.priority == 'Low' %} task-low
                         {% endif %}">
 
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">{{ task.content }}</h5>
-                            <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex justify-content-between align-items-start">
+
+                            <div class="d-flex align-items-start">
+                                <form action="/complete_task" method="post" class="me-2">
+                                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                                    <input type="checkbox" onChange="this.form.submit()" title="Mark as completed" class="form-check-input mt-1">
+                                </form>
+
+                                <div>
+                                    <h5 class="mb-1">{{ task.content }}</h5>
+                                    {% if task.description %}
+                                        <p class="mb-1 text-muted">{{ task.description }}</p>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        {% if task.due_date %}Due: {{ task.due_date }} · {% endif %}
+                                        Created: {{ task.timestamp }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-start gap-2">
                                 <span class="badge text-dark">{{ task.priority }}</span>
                                 <button type="button"
                                         class="btn btn-sm btn-outline-danger py-0 px-1"
@@ -37,16 +55,8 @@
                                     ✕
                                 </button>
                             </div>
+
                         </div>
-
-                        {% if task.description %}
-                            <p class="mb-1 text-muted">{{ task.description }}</p>
-                        {% endif %}
-
-                        <small class="text-muted">
-                            {% if task.due_date %}Due: {{ task.due_date }} · {% endif %}
-                            Created: {{ task.timestamp }}
-                        </small>
 
                     </li>
                 {% endfor %}
@@ -65,9 +75,27 @@
                         {% elif task.priority == 'Low' %} task-low
                         {% endif %}">
 
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">{{ task.content }}</h5>
-                            <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex justify-content-between align-items-start">
+
+                            <div class="d-flex align-items-start">
+                                <form action="/incomplete_task" method="post" class="me-2">
+                                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                                    <input type="checkbox" checked onChange="this.form.submit()" title="Mark as incomplete" class="form-check-input mt-1">
+                                </form>
+
+                                <div>
+                                    <h5 class="mb-1">{{ task.content }}</h5>
+                                    {% if task.description %}
+                                        <p class="mb-1 text-muted">{{ task.description }}</p>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        {% if task.due_date %}Due: {{ task.due_date }} · {% endif %}
+                                        Created: {{ task.timestamp }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-start gap-2">
                                 <span class="badge text-dark">{{ task.priority }}</span>
                                 <button type="button"
                                         class="btn btn-sm btn-outline-danger py-0 px-1"
@@ -79,16 +107,8 @@
                                     ✕
                                 </button>
                             </div>
+
                         </div>
-
-                        {% if task.description %}
-                            <p class="mb-1 text-muted">{{ task.description }}</p>
-                        {% endif %}
-
-                        <small class="text-muted">
-                            {% if task.due_date %}Due: {{ task.due_date }} · {% endif %}
-                            Created: {{ task.timestamp }}
-                        </small>
 
                     </li>
                 {% endfor %}
