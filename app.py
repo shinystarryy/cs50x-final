@@ -84,6 +84,41 @@ def add_task():
 
     return redirect("/")
 
+@app.route("/edit_task", methods=["POST"])
+@login_required
+def edit_task():
+    task_id = request.form.get("task_id")
+    content = request.form.get("content")
+    description = request.form.get("description")
+    priority = request.form.get("priority")
+    due_date = request.form.get("due_date")
+
+    if not task_id:
+        return apology("invalid task", 400)
+    task_id = int(task_id)
+
+    if not content:
+        return apology("must provide task content", 400)
+    if not priority:
+        return apology("must select task priority", 400)
+
+    if due_date:
+        try:
+            datetime.strptime(due_date, "%Y-%m-%d")
+        except ValueError:
+            return apology("invalid date format", 400)
+
+    user_id = session["user_id"]
+    conn = sqlite3.connect("todo.db")
+    db = conn.cursor()
+
+    db.execute("UPDATE todos SET content = ?, description = ?, priority = ?, due_date = ? WHERE id = ? AND user_id = ?", (content, description, priority, due_date, task_id, user_id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
 @app.route("/delete_task", methods=["POST"])
 @login_required
 def delete_task():
